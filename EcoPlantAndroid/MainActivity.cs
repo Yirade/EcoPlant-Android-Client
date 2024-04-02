@@ -8,6 +8,7 @@ using System.Text;
 
 using Xamarin;
 using Android.Telephony.Euicc;
+using System.Net;
 //using Xamarin.Forms;
 
 namespace EcoPlantAndroid
@@ -15,6 +16,8 @@ namespace EcoPlantAndroid
 	[Activity(Label = "@cyberus/ecoplant", MainLauncher = true)]
 	public class MainActivity : Activity
 	{
+		HttpClient client;
+
 		protected override void OnCreate(Bundle? savedInstanceState)
 		{
 			base.OnCreate(savedInstanceState);
@@ -26,11 +29,40 @@ namespace EcoPlantAndroid
 			TransparentStatusBar();
 
 			FindViewById<Button>(Resource.Id.buttonLogin).Click += LoginClick;
+
+			client = new HttpClient();
+			if (FileHelper.Exists("tokens.txt"))
+			{
+				string[] currentToken = FileHelper.ReadAllLines("tokens.txt");
+
+				var loginCheck = new HttpRequestMessage
+				{
+					Method = HttpMethod.Get,
+					RequestUri = new Uri("https://ecoplant-back.yirade.dev/api/v1/token/check/"),
+					Headers =
+					{
+						{HttpRequestHeader.Authorization.ToString(), "Bearer " + currentToken[1]},
+						{ HttpRequestHeader.Accept.ToString(), "application/json" },
+						{ "X-Version", "1" }
+					}
+				};
+
+				var responseTask = client.SendAsync(loginCheck);
+				//responseTask.Start();
+				responseTask.Wait();
+
+				var response = responseTask.Result;
+				if (response.IsSuccessStatusCode)
+				{
+					SetContentView(Resource.Layout.activity_dashboard);
+
+				}
+				else FileHelper.Delete("tokens.txt");
+			}
 		}
 
 		private async void LoginClick(object? sender, EventArgs e)
 		{
-			HttpClient client = new HttpClient();
 			client.BaseAddress = new Uri("https://ecoplant-back.yirade.dev");
 
 			StringContent loginContent = new(
@@ -59,7 +91,7 @@ namespace EcoPlantAndroid
 					{
 						error.Text = "";
 
-						await FileHelper.WriteAllLines("tokens.txt", new string[] { loginResponse.refresh, loginResponse.access });
+						FileHelper.WriteAllLines("tokens.txt", new string[] { loginResponse.refresh, loginResponse.access });
 					}
 					else error.Text = "Invalid response!";
 				}
