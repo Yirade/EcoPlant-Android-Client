@@ -1,15 +1,12 @@
 using Android.OS;
 using Android.Views;
-
 using Java.Interop;
-
 using System.Text.Json;
 using System.Text;
-
+using Android.Content;
 using Xamarin;
 using Android.Telephony.Euicc;
 using System.Net;
-//using Xamarin.Forms;
 
 namespace EcoPlantAndroid
 {
@@ -18,13 +15,18 @@ namespace EcoPlantAndroid
 	{
 		HttpClient client;
 
+		void openDashboard()
+		{
+			Intent intent = new Intent(this, typeof(DashboardActivity));
+			StartActivity(intent);
+		}
+
 		protected override void OnCreate(Bundle? savedInstanceState)
 		{
 			base.OnCreate(savedInstanceState);
-			//
-			// Set our view from the "main" layout resource
 			SetContentView(Resource.Layout.activity_main);
 
+			if (ActionBar == null) throw new Exception();
 			ActionBar.Hide();
 			TransparentStatusBar();
 
@@ -48,14 +50,12 @@ namespace EcoPlantAndroid
 				};
 
 				var responseTask = client.SendAsync(loginCheck);
-				//responseTask.Start();
 				responseTask.Wait();
 
 				var response = responseTask.Result;
 				if (response.IsSuccessStatusCode)
 				{
-					SetContentView(Resource.Layout.activity_dashboard);
-
+					openDashboard();
 				}
 				else FileHelper.Delete("tokens.txt");
 			}
@@ -75,6 +75,7 @@ namespace EcoPlantAndroid
 			"application/json");
 
 			var error = FindViewById<TextView>(Resource.Id.textView3);
+			if (error == null) throw new Exception("this shoudn't happen");
 
 			try
 			{
@@ -90,8 +91,8 @@ namespace EcoPlantAndroid
 					if (loginResponse != null)
 					{
 						error.Text = "";
-
 						FileHelper.WriteAllLines("tokens.txt", new string[] { loginResponse.refresh, loginResponse.access });
+						openDashboard();
 					}
 					else error.Text = "Invalid response!";
 				}
@@ -105,13 +106,15 @@ namespace EcoPlantAndroid
 
 		private void RegisterClick(object? sender, EventArgs e)
 		{
-
+			Intent intent = new Intent(this, typeof(RegisterActivity));
+			StartActivity(intent);
 		}
 
 		private void TransparentStatusBar()
 		{
 			if (Build.VERSION.SdkInt >= BuildVersionCodes.Kitkat)
 			{
+				if (Window == null) throw new Exception();
 				// for covering the full screen in android..
 				Window.SetFlags(WindowManagerFlags.LayoutNoLimits, WindowManagerFlags.LayoutNoLimits);
 
@@ -119,7 +122,6 @@ namespace EcoPlantAndroid
 				Window.ClearFlags(WindowManagerFlags.TranslucentStatus);
 				Window.SetStatusBarColor(Android.Graphics.Color.Transparent);
 			}
-
 		}
 	}
 }

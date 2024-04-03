@@ -1,12 +1,11 @@
 namespace EcoPlantAndroid;
 
-[Activity(Label = "Dashboard")]
-public class Dashboard : Activity
+[Activity(Label = "RegisterActivity")]
+public class RegisterActivity : Activity
 {
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
-
-        // Create your application here
+		SetContentView(Resource.Layout.activity_register);
     }
 }
