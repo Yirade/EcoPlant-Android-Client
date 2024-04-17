@@ -2,8 +2,6 @@ using Android.OS;
 using Android.Views;
 using Android.Webkit;
 
-using static Android.Views.View;
-
 namespace EcoPlantAndroid
 {
 	[Activity(Label = "EcoPlant", MainLauncher = true)]
@@ -18,10 +16,13 @@ namespace EcoPlantAndroid
 
 			webView = FindViewById<WebView>(Resource.Id.webView1);
 			webView.Settings.JavaScriptEnabled = true;
-			webView.Settings.CacheMode = CacheModes.CacheElseNetwork;
+			webView.Settings.CacheMode = CacheModes.Normal;
+			webView.Settings.DomStorageEnabled = true;
 			//webView.Touch += WebView_Touch;
 			webView.SetWebViewClient(new WebViewClient());
 			webView.LoadUrl("https://ecoplant.yirade.dev");
+			webView.Reload();
+			//webView.AddJavascriptInterface();
 
 			ActionBar.Hide();
 
